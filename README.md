@@ -2,11 +2,11 @@
 
 Sift piped strings through various ciphers.
 
-## Example usage
+## Usage example
 
 ```bash
-$ echo "Attack at dawn, my kings" | rev | crypt rot13 --encrypt
-$ ftavx lz ,ajnq gn xpnggN
+$ echo "attack at dawn, my kings" | rev | crypt rot13 --encrypt
+$ ftavx lz ,ajnq gn xpnggn
 ```
 
 All commands are listed in help.
