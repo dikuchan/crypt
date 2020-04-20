@@ -8,9 +8,7 @@ use std::{
     borrow::Borrow,
 };
 
-mod atbash;
-mod rot13;
-mod caesar;
+mod ciphers;
 mod tests;
 
 fn main() {
@@ -46,9 +44,9 @@ fn main() {
                 Ok(_) => {}
                 Err(err) => eprintln!("Cannot read string: {}", err)
             }
-            match atbash::encrypt(buffer.borrow()) {
+            match ciphers::atbash::encrypt(buffer.borrow()) {
                 Some(string) => print!("{}", string),
-                None => print!("{}", buffer)
+                None => {}
             }
         }
         ("rot13", _) => {
@@ -57,9 +55,9 @@ fn main() {
                 Ok(_) => {}
                 Err(err) => eprintln!("Cannot read string: {}", err)
             }
-            match rot13::encrypt(buffer.borrow()) {
+            match ciphers::rot13::encrypt(buffer.borrow()) {
                 Some(string) => print!("{}", string),
-                None => print!("{}", buffer)
+                None => {}
             }
         }
         ("caesar", caesar_matches) => {
@@ -74,20 +72,18 @@ fn main() {
             let matches = if let Some(matches) = caesar_matches {
                 matches
             } else {
-                print!("{}", buffer);
                 return;
             };
             let shift = if let Some(shift) = matches.value_of("shift") {
                 shift
             } else {
-                print!("{}", buffer);
+                eprintln!("Shift not specified");
                 return;
             };
             let shift = match shift.parse::<u8>() {
                 Ok(num) => num,
                 Err(err) => {
                     eprintln!("Erroneous shift: {}", err);
-                    print!("{}", buffer);
                     return;
                 }
             };
@@ -97,13 +93,13 @@ fn main() {
             );
             match (encrypt, decrypt) {
                 (true, _) => {
-                    match caesar::encrypt(buffer.borrow(), shift) {
+                    match ciphers::caesar::encrypt(buffer.borrow(), shift) {
                         Some(string) => print!("{}", string),
                         None => print!("{}", buffer)
                     }
                 }
                 (_, true) => {
-                    match caesar::decrypt(buffer.borrow(), shift) {
+                    match ciphers::caesar::decrypt(buffer.borrow(), shift) {
                         Some(string) => print!("{}", string),
                         None => print!("{}", buffer)
                     }
@@ -111,7 +107,7 @@ fn main() {
                 _ => unreachable!()
             }
         }
-        ("", None) => { return; }
+        ("", None) => return,
         _ => unreachable!()
     }
 }
