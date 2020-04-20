@@ -1,0 +1,14 @@
+[package]
+name = "crypt"
+version = "0.1.0"
+authors = ["dikuchan <dikuchan@yahoo.com>"]
+edition = "2018"
+
+[profile.dev]
+opt-level = 0
+
+[profile.release]
+opt-level = 3
+
+[dependencies]
+clap = "2"
