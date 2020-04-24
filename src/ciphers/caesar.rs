@@ -1,63 +1,50 @@
-pub fn encrypt(string: &str, shift: u8) -> Option<String> {
-    let mut result = String::new();
+pub fn encode(string: &str, shift: u8) -> String {
+    let shift = if shift != 0x00 {
+        shift % 0x1A
+    } else {
+        return string.to_string();
+    };
 
-    if shift > 25 {
-        return None;
-    } else if shift == 0 {
-        return Some(string.to_string());
-    }
-
-    for letter in string.chars() {
-        if letter.is_ascii_alphabetic() {
-            let mut shifted = letter as u8 + shift;
-            if letter.is_ascii_lowercase() {
-                if shifted > 0x7A {
-                    shifted = shifted - 0x7A + 0x61 - 1
-                }
-            } else {
-                if shifted > 0x5A {
-                    shifted = shifted - 0x5A + 0x41 - 1
-                }
-            }
-            result.push(shifted as char);
-        } else if letter.is_ascii() {
-            result.push(letter)
-        } else {
-            return None;
-        }
-    }
-
-    Some(result)
+    string.chars()
+        .map(move |c|
+            match c {
+                'a'..='z' => ((c as u8 + shift - 0x61) % 0x1A + 0x61) as char,
+                'A'..='Z' => ((c as u8 + shift - 0x41) % 0x1A + 0x41) as char,
+                _ => c
+            })
+        .collect()
 }
 
-pub fn decrypt(string: &str, shift: u8) -> Option<String> {
-    let mut result = String::new();
+pub fn decode(string: &str, shift: u8) -> String {
+    let shift = if shift != 0x00 {
+        shift % 0x1A
+    } else {
+        return string.to_string();
+    };
 
-    if shift > 25 {
-        return None;
-    } else if shift == 0 {
-        return Some(string.to_string());
-    }
+    string.chars()
+        .map(move |c|
+            match c {
+                'a'..='z' => ((c as u8 + (0x1A - shift) - 0x61) % 0x1A + 0x61) as char,
+                'A'..='Z' => ((c as u8 + (0x1A - shift) - 0x41) % 0x1A + 0x41) as char,
+                _ => c
+            })
+        .map(|b| b as char)
+        .collect()
+}
 
-    for letter in string.chars() {
-        if letter.is_ascii_alphabetic() {
-            let mut shifted = letter as u8 - shift;
-            if letter.is_ascii_lowercase() {
-                if shifted < 0x61 {
-                    shifted = shifted + 0x7A - 0x61 + 1
-                }
-            } else {
-                if shifted < 0x41 {
-                    shifted = shifted + 0x5A - 0x41 + 1
-                }
-            }
-            result.push(shifted as char);
-        } else if letter.is_ascii() {
-            result.push(letter)
-        } else {
-            return None;
-        }
-    }
+#[test]
+fn test_caesar_encryption() {
+    assert_eq!(encode("Attack at dawn", 5), String::from("Fyyfhp fy ifbs"));
+    assert_eq!(encode("true iS 42", 13), String::from("gehr vF 42"));
+    assert_eq!(encode("こんばんは, mates", 33), String::from("こんばんは, thalz"));
+    assert_eq!(encode("Привет, world!", 25), String::from("Привет, vnqkc!"));
+}
 
-    Some(result)
+#[test]
+fn test_caesar_decryption() {
+    assert_eq!(decode("Fyyfhp fy ifbs", 5), String::from("Attack at dawn"));
+    assert_eq!(decode("gehr vF 42", 13), String::from("true iS 42"));
+    assert_eq!(decode("こんばんは, thalz", 33), String::from("こんばんは, mates"));
+    assert_eq!(decode("Привет, vnqkc!", 25), String::from("Привет, world!"));
 }
