@@ -7,6 +7,9 @@ Sift piped strings through various ciphers.
 ```bash
 $ echo "attack at dawn, my kings" | rev | crypt rot13 --encrypt
 $ ftavx lz ,ajnq gn xpnggn
+
+$ echo "hello world" | crypt base64 -d aGVsbG8gd29ybGQ=
+$ hello world
 ```
 
 All commands are listed in help.
@@ -14,8 +17,9 @@ All commands are listed in help.
 ## Implemented
 
 * [x] Atbash
-* [x] ROT13
+* [x] Rot13
 * [X] Caesar
+* [X] Base64
 
 ## To implement
 

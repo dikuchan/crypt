@@ -9,7 +9,6 @@ use std::{
 };
 
 mod ciphers;
-mod tests;
 
 fn main() {
     let matches = clap_app!(crypt =>
@@ -18,22 +17,28 @@ fn main() {
         (about: "Cipher piped strings")
         (@subcommand atbash =>
             (@group action +required =>
-                (@arg encrypt: -e --encrypt)
-                (@arg decrypt: -d --decrypt)
+                (@arg encode: -e --encode)
+                (@arg decode: -d --decode)
             )
         )
         (@subcommand rot13 =>
             (@group action +required =>
-                (@arg encrypt: -e --encrypt)
-                (@arg decrypt: -d --decrypt)
+                (@arg encode: -e --encode)
+                (@arg decode: -d --decode)
             )
         )
         (@subcommand caesar =>
             (@group action +required =>
-                (@arg encrypt: -e --encrypt)
-                (@arg decrypt: -d --decrypt)
+                (@arg encode: -e --encode)
+                (@arg decode: -d --decode)
             )
             (@arg shift: -s --shift +required +takes_value "Number of letter to shift")
+        )
+        (@subcommand base64 =>
+            (@group action +required =>
+                (@arg encode: -e --encode)
+                (@arg decode: -d --decode)
+            )
         )
     ).get_matches();
 
@@ -44,10 +49,7 @@ fn main() {
                 Ok(_) => {}
                 Err(err) => eprintln!("Cannot read string: {}", err)
             }
-            match ciphers::atbash::encrypt(buffer.borrow()) {
-                Some(string) => print!("{}", string),
-                None => {}
-            }
+            print!("{}", ciphers::atbash::encode(buffer.borrow()))
         }
         ("rot13", _) => {
             let mut buffer = String::new();
@@ -55,10 +57,7 @@ fn main() {
                 Ok(_) => {}
                 Err(err) => eprintln!("Cannot read string: {}", err)
             }
-            match ciphers::rot13::encrypt(buffer.borrow()) {
-                Some(string) => print!("{}", string),
-                None => {}
-            }
+            print!("{}", ciphers::rot13::encode(buffer.borrow()))
         }
         ("caesar", caesar_matches) => {
             let mut buffer = String::new();
@@ -87,23 +86,34 @@ fn main() {
                     return;
                 }
             };
-            let (encrypt, decrypt) = (
-                matches.is_present("encrypt"),
-                matches.is_present("decrypt")
+            let (encode, decode) = (
+                matches.is_present("encode"),
+                matches.is_present("decode")
             );
-            match (encrypt, decrypt) {
-                (true, _) => {
-                    match ciphers::caesar::encrypt(buffer.borrow(), shift) {
-                        Some(string) => print!("{}", string),
-                        None => print!("{}", buffer)
-                    }
-                }
-                (_, true) => {
-                    match ciphers::caesar::decrypt(buffer.borrow(), shift) {
-                        Some(string) => print!("{}", string),
-                        None => print!("{}", buffer)
-                    }
-                }
+            match (encode, decode) {
+                (true, _) => print!("{}", ciphers::caesar::encode(buffer.borrow(), shift)),
+                (_, true) => print!("{}", ciphers::caesar::decode(buffer.borrow(), shift)),
+                _ => unreachable!()
+            }
+        }
+        ("base64", base64_matches) => {
+            let mut buffer = String::new();
+            match io::stdin().read_to_string(&mut buffer) {
+                Ok(_) => {}
+                Err(err) => eprintln!("Cannot read string: {}", err)
+            }
+            let matches = if let Some(matches) = base64_matches {
+                matches
+            } else {
+                return;
+            };
+            let (encode, decode) = (
+                matches.is_present("encode"),
+                matches.is_present("decode")
+            );
+            match (encode, decode) {
+                (true, _) => print!("{}", ciphers::base64::encode(buffer.borrow())),
+                (_, true) => print!("{}", ciphers::base64::decode(buffer.borrow())),
                 _ => unreachable!()
             }
         }
