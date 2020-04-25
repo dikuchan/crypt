@@ -9,6 +9,7 @@ use std::{
 };
 
 mod ciphers;
+mod utils;
 
 fn main() {
     let matches = clap_app!(crypt =>
@@ -21,7 +22,15 @@ fn main() {
                 (@arg decode: -d --decode)
             )
         )
-        (@subcommand rot13 =>
+        (@subcommand affine =>
+            (@group action +required =>
+                (@arg encode: -e --encode)
+                (@arg decode: -d --decode)
+            )
+            (@arg a: +required +takes_value "Slope")
+            (@arg b: +required +takes_value "Intercept")
+        )
+        (@subcommand base64 =>
             (@group action +required =>
                 (@arg encode: -e --encode)
                 (@arg decode: -d --decode)
@@ -34,7 +43,7 @@ fn main() {
             )
             (@arg shift: -s --shift +required +takes_value "Number of letter to shift")
         )
-        (@subcommand base64 =>
+        (@subcommand rot13 =>
             (@group action +required =>
                 (@arg encode: -e --encode)
                 (@arg decode: -d --decode)
@@ -91,8 +100,24 @@ fn main() {
                 matches.is_present("decode")
             );
             match (encode, decode) {
-                (true, _) => print!("{}", ciphers::caesar::encode(buffer.borrow(), shift)),
-                (_, true) => print!("{}", ciphers::caesar::decode(buffer.borrow(), shift)),
+                (true, _) => {
+                    match ciphers::caesar::encode(buffer.borrow(), shift) {
+                        Ok(string) => print!("{}", string),
+                        Err(err) => {
+                            eprintln!("{}", err);
+                            print!("{}", buffer)
+                        }
+                    }
+                }
+                (_, true) => {
+                    match ciphers::caesar::decode(buffer.borrow(), shift) {
+                        Ok(string) => print!("{}", string),
+                        Err(err) => {
+                            eprintln!("{}", err);
+                            print!("{}", buffer)
+                        }
+                    }
+                }
                 _ => unreachable!()
             }
         }
@@ -116,6 +141,70 @@ fn main() {
                 (_, true) => print!("{}", ciphers::base64::decode(buffer.borrow())),
                 _ => unreachable!()
             }
+        }
+        ("affine", affine_matches) => {
+            let mut buffer = String::new();
+            match io::stdin().read_to_string(&mut buffer) {
+                Ok(_) => {}
+                Err(err) => eprintln!("Cannot read string: {}", err)
+            }
+            let matches = if let Some(matches) = affine_matches {
+                matches
+            } else {
+                return;
+            };
+            let a = if let Some(a) = matches.value_of("a") {
+                a
+            } else {
+                eprintln!("Slope not specified");
+                return;
+            };
+            let a = match a.parse::<i64>() {
+                Ok(num) => num,
+                Err(err) => {
+                    eprintln!("Erroneous slope: {}", err);
+                    return;
+                }
+            };
+            let b = if let Some(b) = matches.value_of("b") {
+                b
+            } else {
+                eprintln!("Intercept not specified");
+                return;
+            };
+            let b = match b.parse::<i64>() {
+                Ok(num) => num,
+                Err(err) => {
+                    eprintln!("Erroneous intercept: {}", err);
+                    return;
+                }
+            };
+            let (encode, decode) = (
+                matches.is_present("encode"),
+                matches.is_present("decode")
+            );
+            match (encode, decode) {
+                (true, _) => {
+                    match ciphers::affine::encode(buffer.borrow(), a, b) {
+                        Ok(string) => print!("{}", string),
+                        Err(err) => {
+                            eprintln!("{}", err);
+                            print!("{}", buffer)
+                        }
+                    }
+                }
+                (_, true) => {
+                    match ciphers::affine::decode(buffer.borrow(), a, b) {
+                        Ok(string) => print!("{}", string),
+                        Err(err) => {
+                            eprintln!("{}", err);
+                            print!("{}", buffer)
+                        }
+                    }
+                }
+                _ => unreachable!()
+            }
+
         }
         ("", None) => return,
         _ => unreachable!()
