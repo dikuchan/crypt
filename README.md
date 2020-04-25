@@ -8,8 +8,8 @@ Sift piped strings through various ciphers.
 $ echo "attack at dawn, my kings" | rev | crypt rot13 --encode
 $ ftavx lz ,ajnq gn xpnggn
 
-$ echo "hello world" | crypt base64 -d aGVsbG8gd29ybGQ=
-$ hello world
+$ echo "gffgka gf zgyt, ec awtsq" | crypt affine -d
+$ attack at dawn, my kings
 ```
 
 All commands are listed in help.
