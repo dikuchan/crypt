@@ -1,4 +1,4 @@
-pub fn encode(string: &str) -> String {
+pub fn encrypt(string: &str) -> String {
     string.chars()
         .map(|c|
             match c {
@@ -11,16 +11,16 @@ pub fn encode(string: &str) -> String {
 
 #[test]
 fn test_atbash_encryption() {
-    assert_eq!(encode("Attack at dawn"), String::from("Zggzxp zg wzdm"));
-    assert_eq!(encode("true iS 42"), String::from("gifv rH 42"));
-    assert_eq!(encode("こんばんは"), String::from("こんばんは"));
-    assert_eq!(encode("Привет, world!"), String::from("Привет, dliow!"))
+    assert_eq!(encrypt("Attack at dawn"), String::from("Zggzxp zg wzdm"));
+    assert_eq!(encrypt("true iS 42"), String::from("gifv rH 42"));
+    assert_eq!(encrypt("こんばんは"), String::from("こんばんは"));
+    assert_eq!(encrypt("Привет, world!"), String::from("Привет, dliow!"))
 }
 
 #[test]
 fn test_atbash_decryption() {
-    assert_eq!(encode("Zggzxp zg wzdm"), String::from("Attack at dawn"));
-    assert_eq!(encode("gifv rH 42"), String::from("true iS 42"));
-    assert_eq!(encode("こんばんは"), String::from("こんばんは"));
-    assert_eq!(encode("Привет, dliow!"), String::from("Привет, world!"))
+    assert_eq!(encrypt("Zggzxp zg wzdm"), String::from("Attack at dawn"));
+    assert_eq!(encrypt("gifv rH 42"), String::from("true iS 42"));
+    assert_eq!(encrypt("こんばんは"), String::from("こんばんは"));
+    assert_eq!(encrypt("Привет, dliow!"), String::from("Привет, world!"))
 }

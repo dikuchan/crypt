@@ -1,6 +1,6 @@
 use crate::utils;
 
-pub fn encode(string: &str, shift: u8) -> Result<String, utils::CipherError> {
+pub fn encrypt(string: &str, shift: u8) -> Result<String, utils::CipherError> {
     let shift = if shift != 0x00 {
         shift % 0x1A
     } else {
@@ -19,7 +19,7 @@ pub fn encode(string: &str, shift: u8) -> Result<String, utils::CipherError> {
     Ok(result)
 }
 
-pub fn decode(string: &str, shift: u8) -> Result<String, utils::CipherError> {
+pub fn decrypt(string: &str, shift: u8) -> Result<String, utils::CipherError> {
     let shift = if shift != 0x00 {
         shift % 0x1A
     } else {
@@ -41,16 +41,16 @@ pub fn decode(string: &str, shift: u8) -> Result<String, utils::CipherError> {
 
 #[test]
 fn test_caesar_encryption() {
-    assert_eq!(encode("Attack at dawn", 5).unwrap(), String::from("Fyyfhp fy ifbs"));
-    assert_eq!(encode("true iS 42", 13).unwrap(), String::from("gehr vF 42"));
-    assert_eq!(encode("こんばんは, mates", 33).unwrap(), String::from("こんばんは, thalz"));
-    assert_eq!(encode("Привет, world!", 25).unwrap(), String::from("Привет, vnqkc!"));
+    assert_eq!(encrypt("Attack at dawn", 5).unwrap(), String::from("Fyyfhp fy ifbs"));
+    assert_eq!(encrypt("true iS 42", 13).unwrap(), String::from("gehr vF 42"));
+    assert_eq!(encrypt("こんばんは, mates", 33).unwrap(), String::from("こんばんは, thalz"));
+    assert_eq!(encrypt("Привет, world!", 25).unwrap(), String::from("Привет, vnqkc!"));
 }
 
 #[test]
 fn test_caesar_decryption() {
-    assert_eq!(decode("Fyyfhp fy ifbs", 5).unwrap(), String::from("Attack at dawn"));
-    assert_eq!(decode("gehr vF 42", 13).unwrap(), String::from("true iS 42"));
-    assert_eq!(decode("こんばんは, thalz", 33).unwrap(), String::from("こんばんは, mates"));
-    assert_eq!(decode("Привет, vnqkc!", 25).unwrap(), String::from("Привет, world!"));
+    assert_eq!(decrypt("Fyyfhp fy ifbs", 5).unwrap(), String::from("Attack at dawn"));
+    assert_eq!(decrypt("gehr vF 42", 13).unwrap(), String::from("true iS 42"));
+    assert_eq!(decrypt("こんばんは, thalz", 33).unwrap(), String::from("こんばんは, mates"));
+    assert_eq!(decrypt("Привет, vnqkc!", 25).unwrap(), String::from("Привет, world!"));
 }

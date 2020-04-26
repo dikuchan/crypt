@@ -4,7 +4,7 @@ fn egcd(a: i64, b: i64) -> i64 {
     if b == 0 { a } else { egcd(b, a % b) }
 }
 
-pub fn encode(string: &str, a: i64, b: i64) -> Result<String, utils::CipherError> {
+pub fn encrypt(string: &str, a: i64, b: i64) -> Result<String, utils::CipherError> {
     let a = a % 0x1A;
     let b = b % 0x1A;
 
@@ -42,7 +42,7 @@ fn invert(a: i64, m: i64) -> Option<i64> {
     }
 }
 
-pub fn decode(string: &str, a: i64, b: i64) -> Result<String, utils::CipherError> {
+pub fn decrypt(string: &str, a: i64, b: i64) -> Result<String, utils::CipherError> {
     let a = if let Some(a) = invert(a, 0x1A) {
         a
     } else {
@@ -64,16 +64,16 @@ pub fn decode(string: &str, a: i64, b: i64) -> Result<String, utils::CipherError
 
 #[test]
 fn test_affine_encryption() {
-    assert_eq!(encode("Attack at dawn", 5, 8).unwrap(), String::from("Izzisg iz xiov"));
-    assert_eq!(encode("true iS 42", 15, 9).unwrap(), String::from("iexr zT 42"));
-    assert!(encode("こんばんは, mates", 14, 2).is_err());
-    assert_eq!(encode("Привет, world!", 25, 37).unwrap(), String::from("Привет, pxuai!"))
+    assert_eq!(encrypt("Attack at dawn", 5, 8).unwrap(), String::from("Izzisg iz xiov"));
+    assert_eq!(encrypt("true iS 42", 15, 9).unwrap(), String::from("iexr zT 42"));
+    assert!(encrypt("こんばんは, mates", 14, 2).is_err());
+    assert_eq!(encrypt("Привет, world!", 25, 37).unwrap(), String::from("Привет, pxuai!"))
 }
 
 #[test]
 fn test_affine_decryption() {
-    assert_eq!(decode("Izzisg iz xiov", 5, 8).unwrap(), String::from("Attack at dawn"));
-    assert_eq!(decode("iexr zT 42", 15, 9).unwrap(), String::from("true iS 42"));
-    assert!(decode("こんばんは, mates", 14, 2).is_err());
-    assert_eq!(decode("Привет, pxuai!", 25, 37).unwrap(), String::from("Привет, world!"))
+    assert_eq!(decrypt("Izzisg iz xiov", 5, 8).unwrap(), String::from("Attack at dawn"));
+    assert_eq!(decrypt("iexr zT 42", 15, 9).unwrap(), String::from("true iS 42"));
+    assert!(decrypt("こんばんは, mates", 14, 2).is_err());
+    assert_eq!(decrypt("Привет, pxuai!", 25, 37).unwrap(), String::from("Привет, world!"))
 }

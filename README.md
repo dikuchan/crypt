@@ -1,11 +1,11 @@
 # Crypt
 
-Sift piped strings through various ciphers.
+Encrypt piped strings.
 
 ## Usage example
 
 ```bash
-$ echo "attack at dawn, my kings" | rev | crypt rot13 --encode
+$ echo "attack at dawn, my kings" | rev | crypt rot13 --encrypt
 $ ftavx lz ,ajnq gn xpnggn
 
 $ echo "gffgka gf zgyt, ec awtsq" | crypt affine -d
@@ -18,7 +18,6 @@ All commands are listed in help.
 
 * [x] Atbash
 * [x] Affine
-* [X] Base64
 * [X] Caesar
 * [x] Rot13
 
