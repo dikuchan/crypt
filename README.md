@@ -5,11 +5,17 @@ Encrypt piped strings.
 ## Usage example
 
 ```bash
-$ echo "attack at dawn, my kings" | rev | crypt rot13 --encrypt
-$ ftavx lz ,ajnq gn xpnggn
+$ echo "attack at dawn" | crypt affine -e 15 7 | crypt affine -d 15 7
+$ attack at dawn
 
-$ echo "gffgka gf zgyt, ec awtsq" | crypt affine -d
-$ attack at dawn, my kings
+$ echo "cake is a lie" | crypt rot13 --encrypt | crypt atbash -e
+$ kmci eu m bei 
+
+$ echo "kmci eu m bei" | crypt atbash --decrypt | crypt rot13 -d
+$ cake is a lie
+
+$ echo "truth is 42" | crypt caesar -e 10 | rev | rev | crypt caesar -d 10
+$ truth is 42
 ```
 
 All commands are listed in help.
@@ -18,12 +24,12 @@ All commands are listed in help.
 
 * [x] Atbash
 * [x] Affine
+* [x] Baconian
 * [X] Caesar
 * [x] Rot13
 
 ## To implement
 
-* [ ] Baconian
 * [ ] Polybius Square
 
 ...and hopefully much more.
