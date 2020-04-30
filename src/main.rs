@@ -30,12 +30,18 @@ fn main() {
             (@arg a: +required +takes_value "Slope")
             (@arg b: +required +takes_value "Intercept")
         )
+        (@subcommand bacon =>
+            (@group action +required =>
+                (@arg encrypt: -e --encrypt)
+                (@arg decrypt: -d --decrypt)
+            )
+        )
         (@subcommand caesar =>
             (@group action +required =>
                 (@arg encrypt: -e --encrypt)
                 (@arg decrypt: -d --decrypt)
             )
-            (@arg shift: -s --shift +required +takes_value "Number of letter to shift")
+            (@arg shift: +required +takes_value "Number of letter to shift")
         )
         (@subcommand rot13 =>
             (@group action +required =>
@@ -61,6 +67,46 @@ fn main() {
                 Err(err) => eprintln!("Cannot read string: {}", err)
             }
             print!("{}", ciphers::rot13::encrypt(buffer.borrow()))
+        }
+        ("bacon", bacon_matches) => {
+            let mut buffer = String::new();
+            match io::stdin().read_to_string(&mut buffer) {
+                Ok(_) => {}
+                Err(err) => {
+                    eprintln!("Cannot read string: {}", err);
+                    return;
+                }
+            }
+            let matches = if let Some(matches) = bacon_matches {
+                matches
+            } else {
+                return;
+            };
+            let (encrypt, decrypt) = (
+                matches.is_present("encrypt"),
+                matches.is_present("decrypt")
+            );
+            match (encrypt, decrypt) {
+                (true, _) => {
+                    match ciphers::bacon::encrypt(buffer.borrow()) {
+                        Ok(string) => print!("{}", string),
+                        Err(err) => {
+                            eprintln!("{}", err);
+                            print!("{}", buffer)
+                        }
+                    }
+                }
+                (_, true) => {
+                    match ciphers::bacon::decrypt(buffer.borrow()) {
+                        Ok(string) => print!("{}", string),
+                        Err(err) => {
+                            eprintln!("{}", err);
+                            print!("{}", buffer)
+                        }
+                    }
+                }
+                _ => unreachable!()
+            }
         }
         ("caesar", caesar_matches) => {
             let mut buffer = String::new();
@@ -89,11 +135,11 @@ fn main() {
                     return;
                 }
             };
-            let (encode, decode) = (
-                matches.is_present("encode"),
-                matches.is_present("decode")
+            let (encrypt, decrypt) = (
+                matches.is_present("encrypt"),
+                matches.is_present("decrypt")
             );
-            match (encode, decode) {
+            match (encrypt, decrypt) {
                 (true, _) => {
                     match ciphers::caesar::encrypt(buffer.borrow(), shift) {
                         Ok(string) => print!("{}", string),
@@ -152,11 +198,11 @@ fn main() {
                     return;
                 }
             };
-            let (encode, decode) = (
-                matches.is_present("encode"),
-                matches.is_present("decode")
+            let (encrypt, decrypt) = (
+                matches.is_present("encrypt"),
+                matches.is_present("decrypt")
             );
-            match (encode, decode) {
+            match (encrypt, decrypt) {
                 (true, _) => {
                     match ciphers::affine::encrypt(buffer.borrow(), a, b) {
                         Ok(string) => print!("{}", string),
