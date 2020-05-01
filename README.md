@@ -37,4 +37,4 @@ All commands are listed in help.
 ## Future plans
 
 * [ ] Alphabet support (Russian, German, Hebrew, etc.)
-* [ ] CL input support
+* [x] CL input support
