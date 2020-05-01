@@ -1,7 +1,7 @@
 version: 2.1
 
 jobs:
-  test:
+  smoke:
     docker:
       - image: rust:latest
     steps:
@@ -17,7 +17,7 @@ jobs:
             - v4-cargo-cache-{{ arch }}-{{ checksum "Cargo.lock" }}
       - run:
           name: Build
-          command: "cargo build --all --all-targets"
+          command: "cargo build --all --all-targets --release"
       - save_cache:
           paths:
             - /usr/local/cargo/registry
@@ -26,11 +26,11 @@ jobs:
             - target/debug/deps
           key: v4-cargo-cache-{{ arch }}-{{ checksum "Cargo.lock" }}
       - run:
-          name: Run tests
+          name: Run Tests
           command: "cargo test --all"
 
 workflows:
   version: 2.1
   main:
     jobs:
-      - test
+      - smoke
