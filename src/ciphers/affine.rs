@@ -48,6 +48,10 @@
  *
  *  so we have recovered d = 3 as the first plaintext character.
  *  Finally, we have 'defend the east wall of the castle'.
+ *
+ *  [Requirements]
+ *
+ *  All letter should be alpha characters.
  */
 
 // Source: http://practicalcryptography.com
@@ -62,7 +66,6 @@ pub fn encrypt(string: &str, a: i64, b: i64) -> Result<String, CipherError> {
     if !is_alpha(string) {
         return Err(CipherError::NotAlpha);
     }
-    let string = string.to_ascii_uppercase();
 
     let a = a % 0x1A;
     let b = b % 0x1A;
@@ -73,10 +76,10 @@ pub fn encrypt(string: &str, a: i64, b: i64) -> Result<String, CipherError> {
 
     let result = string.chars()
         .map(|c|
-            if c.is_ascii_uppercase() {
-                (((a * (c as i64 - 0x41) + b) % 0x1A) as u8 + 0x41) as char
-            } else {
-                c
+            match c {
+                'a'..='z' => (((a * (c as i64 - 0x61) + b) % 0x1A) as u8 + 0x61) as char,
+                'A'..='Z' => (((a * (c as i64 - 0x41) + b) % 0x1A) as u8 + 0x41) as char,
+                _ => c
             })
         .collect();
 
@@ -105,7 +108,6 @@ pub fn decrypt(string: &str, a: i64, b: i64) -> Result<String, CipherError> {
     if !is_alpha(string) {
         return Err(CipherError::NotAlpha);
     }
-    let string = string.to_ascii_uppercase();
 
     let a = if let Some(a) = invert(a, 0x1A) {
         a
@@ -115,10 +117,10 @@ pub fn decrypt(string: &str, a: i64, b: i64) -> Result<String, CipherError> {
 
     let result = string.chars()
         .map(|c|
-            if c.is_ascii_uppercase() {
-                ((((a * (c as i64 - 0x41 - b)) % 0x1A + 0x1A) % 0x1A) as u8 + 0x41) as char
-            } else {
-                c
+            match c {
+                'a'..='z' => ((((a * (c as i64 - 0x61 - b)) % 0x1A + 0x1A) % 0x1A) as u8 + 0x61) as char,
+                'A'..='Z' => ((((a * (c as i64 - 0x41 - b)) % 0x1A + 0x1A) % 0x1A) as u8 + 0x41) as char,
+                _ => c
             })
         .collect();
 
@@ -127,16 +129,16 @@ pub fn decrypt(string: &str, a: i64, b: i64) -> Result<String, CipherError> {
 
 #[test]
 fn test_affine_encryption() {
-    assert_eq!(encrypt("Attack at dawn", 5, 8).unwrap(), String::from("IZZISG IZ XIOV"));
-    assert_eq!(encrypt("true iS None", 15, 9).unwrap(), String::from("IEXR ZT WLWR"));
+    assert_eq!(encrypt("Attack at dawn", 5, 8).unwrap(), String::from("Izzisg iz xiov"));
+    assert_eq!(encrypt("true iS None", 15, 9).unwrap(), String::from("iexr zT Wlwr"));
     assert!(encrypt("こんばんは, mates", 14, 2).is_err());
     assert!(encrypt("Привет, world!", 25, 37).is_err())
 }
 
 #[test]
 fn test_affine_decryption() {
-    assert_eq!(decrypt("Izzisg iz xiov", 5, 8).unwrap(), String::from("ATTACK AT DAWN"));
-    assert_eq!(decrypt("iexr zT Wlwr", 15, 9).unwrap(), String::from("TRUE IS NONE"));
+    assert_eq!(decrypt("Izzisg iz xiov", 5, 8).unwrap(), String::from("Attack at dawn"));
+    assert_eq!(decrypt("iexr zT Wlwr", 15, 9).unwrap(), String::from("true iS None"));
     assert!(decrypt("こんばんは, mates", 14, 2).is_err());
     assert!(decrypt("Привет, pxuai!", 25, 37).is_err())
 }

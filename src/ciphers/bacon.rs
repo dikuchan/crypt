@@ -21,6 +21,10 @@
  *
  *  Capital letters are used where the cipher has a 'b' and lowercase where there is an 'a'.
  *  This scheme is a little bit transparent, however there are many ways of encoding a Baconian cipher in text.
+ *
+ *  [Requirements]
+ *
+ *  All letter should be alpha characters.
  */
 
 // Source: http://practicalcryptography.com
@@ -32,13 +36,15 @@ pub fn encrypt(string: &str) -> Result<String, CipherError> {
     if !is_alpha(string) {
         return Err(CipherError::NotAlpha);
     }
-    let string = string.to_uppercase();
     let result = string.chars()
         .map(|c|
-            if c.is_ascii_whitespace() {
+            if c.is_whitespace() {
                 c.to_string()
             } else {
                 format!("{:05b}", match c {
+                    'a'..='i' => (c as u8) - 0x61,
+                    'j'..='u' => (c as u8) - 0x61 - 0x01,
+                    'v'..='z' => (c as u8) - 0x61 - 0x02,
                     'A'..='I' => (c as u8) - 0x41,
                     'J'..='U' => (c as u8) - 0x41 - 0x01,
                     'V'..='Z' => (c as u8) - 0x41 - 0x02,
@@ -59,9 +65,9 @@ fn transform(slice: &[u8]) -> Option<char> {
 
     let result = if let Ok(result) = u8::from_str_radix(string, 2) {
         match result {
-            0x00..=0x08 => result + 0x41,
-            0x09..=0x13 => result + 0x41 + 0x01,
-            0x14..=0x17 => result + 0x41 + 0x02,
+            0x00..=0x08 => result + 0x61,
+            0x09..=0x13 => result + 0x61 + 0x01,
+            0x14..=0x17 => result + 0x61 + 0x02,
             _ => unreachable!()
         }
     } else {
@@ -85,6 +91,25 @@ pub fn decrypt(string: &str) -> Result<String, CipherError> {
     Ok(result)
 }
 
+pub fn implant(cipher: &str, text: &str) -> Result<String, CipherError> {
+    let text = text.to_lowercase();
+    let cipher = cipher.chars()
+        .filter(|c| !c.is_whitespace())
+        .collect::<String>();
+    let result = text.chars()
+        .zip(cipher.chars())
+        .map(|(a, b)|
+            match b {
+                '0' => a,
+                '1' => ((a as u8) + 0x20) as char,
+                _ => unreachable!()
+            })
+
+        .collect();
+
+    Ok(result)
+}
+
 #[test]
 fn test_baconian_encryption() {
     assert_eq!(encrypt("Attack at dawn").unwrap(), String::from("000001001010010000000001001001 0000010010 00011000001010001100"));
@@ -95,6 +120,6 @@ fn test_baconian_encryption() {
 
 #[test]
 fn test_baconian_decryption() {
-    assert_eq!(decrypt("000001001010010000000001001001 0000010010 00011000001010001100").unwrap(), String::from("ATTACK AT DAWN"));
-    assert_eq!(decrypt("10010100001001100100 0100010001 01100011010110000100").unwrap(), String::from("TRUE IS NONE"));
+    assert_eq!(decrypt("000001001010010000000001001001 0000010010 00011000001010001100").unwrap(), String::from("attack at dawn"));
+    assert_eq!(decrypt("10010100001001100100 0100010001 01100011010110000100").unwrap(), String::from("true is none"));
 }
