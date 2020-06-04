@@ -1,20 +1,39 @@
 # Crypt
 
-Encrypt piped strings.
+Command line tool for encryption and decryption.
 
-## Usage example
+## Description
+
+#### Learn
+
+Crypt provides the interface that is convenient when learning cryptography.
+
+With that idea in mind, most common ciphers and attacks are implemented and their execution are demonstrated step by step.
+
+#### Use
+
+Well-known and prominent ciphers are implemented and listed down below.
+
+If you think something is missed, I would gladly inspect an issue or a pull request.
+
+#### Customize
+
+Additional languages could be added via .json file.
+
+## Examples
+
+```bash
+$ crypt rot13 -encrypt "hello world"
+$ uryyb jbeyq
+```
 
 ```bash
 $ echo "attack at dawn" | crypt affine -e 15 7 | crypt affine -d 15 7
 $ attack at dawn
+```
 
-$ echo "cake is a lie" | crypt rot13 --encrypt | crypt atbash -e
-$ kmci eu m bei 
-
-$ echo "kmci eu m bei" | crypt atbash --decrypt | crypt rot13 -d
-$ cake is a lie
-
-$ echo "truth is 42" | crypt caesar -e 10 | rev | rev | crypt caesar -d 10
+```bash
+$ crypt caesar -e 10 "truth is 42" | rev | rev | crypt caesar -d 10
 $ truth is 42
 ```
 
@@ -26,15 +45,30 @@ All commands are listed in help.
 * [x] Affine
 * [x] Baconian
 * [X] Caesar
+    * [ ] Brute-force
+    * [ ] Hill-climbing
 * [x] Rot13
+* [ ] RSA
+    * [ ] Common modulus
+    * [ ] Small decryption exponent
+    * [ ] Partial disclosure
 
-## To implement
+## Customization
 
-* [ ] Polybius Square
+Support of custom languages could be provided.
 
-...and hopefully much more.
+```json
+{
+  "cyrillic": {
+    "upper": ["А", "Б", ..., "Я"],
+    "lower": ["а", "б", ..., "я"]
+  }
+}
+```
 
-## Future plans
+Usage:
 
-* [ ] Alphabet support (Russian, German, Hebrew, etc.)
-* [x] CL input support
+```bash
+$ echo "привет" | crypt rot13 --encrypt --lang cyrillic.json
+$ ьэхося
+```
