@@ -1,14 +1,4 @@
 /*
- *  [General]
- *
- *  The ROT13 cipher is a substitution cipher with a specific key where the letters of the alphabet are offset 13 places.
- *  I. e. all 'A's are replaced with 'N's, all 'B's are replaced with 'O's, and so on.
- *  It can also be thought of as a Caesar cipher with a shift of 13.
- *
- *  The ROT13 cipher offers almost no security, and can be broken very easily.
- *  Anyway, adversary can still break the message by determining the key using hill-climbing.
-  * The ROT13 cipher is also an Caesar cipher with a key of 13, so breaking it as a Caesar cipher also works.
- *
  *  [Algorithm]
  *
  *  The ROT13 cipher is essentially a substitution cipher with a fixed key.
@@ -29,10 +19,6 @@
  *
  *  ATTACK AT DAWN
  *  NGGNPX NG QNJA
- *
- *  To decipher a message, the exact same procedure is followed.
- *  Find 'N' in the top row, which is 'A' in the bottom row.
- *  Continue until the whole message is deciphered.
  */
 
 // Source: http://practicalcryptography.com

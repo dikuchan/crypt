@@ -1,11 +1,4 @@
 /*
- *  [General]
- *
- *  The Baconian cipher is a substitution cipher in which each letter is replaced by a sequence of 5 characters.
- *  This cipher offers very little communication security, as it is a substitution cipher.
- *  As such all the methods used to cryptanalyse substitution ciphers can be used to break Baconian ciphers.
- *  The main advantage of the cipher is that it allows hiding the fact that a secret message has been sent at all.
- *
  *  [Algorithm]
  *
  *  Each letter is assigned to a string of five binary digits.
@@ -20,7 +13,6 @@
  *  Hold OFf uNtIl you hEar frOm mE agAin. wE May cOMpROmIse.
  *
  *  Capital letters are used where the cipher has a 'b' and lowercase where there is an 'a'.
- *  This scheme is a little bit transparent, however there are many ways of encoding a Baconian cipher in text.
  *
  *  [Requirements]
  *

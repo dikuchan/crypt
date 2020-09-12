@@ -1,11 +1,4 @@
 /*
- *  [General]
- *
- *  The Affine cipher is a special case of the more general monoalphabetic substitution cipher.
- *  The cipher is vulnerable to all of the attacks that work against substitution ciphers.
- *  Primary weakness comes from the fact that if cryptanalyst can discover the plaintext of two ciphertext characters,
- *  then the key can be obtained by solving a simultaneous equation.
- *
  *  [Algorithm]
  *
  *  The key for the Affine cipher consists of 2 numbers, we'll call them a and b.

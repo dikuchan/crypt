@@ -1,12 +1,4 @@
 /*
- *  [General]
- *
- *  The Caesar cipher is one of the earliest known and simplest ciphers.
- *  It is a type of substitution cipher in which each letter is 'shifted' a certain number of places down the alphabet.
- *  For example, with a shift of 1, A would be replaced by B, B would become C, and so on.
- *  The method is named after Julius Caesar, who apparently used it to communicate with his generals.
- *  The Caesar cipher offers essentially no communication security, and it can be easily broken even by hand.
- *
  *  [Algorithm]
  *
  *  To pass an encrypted message, it is first necessary that both parties have the 'key' for the cipher.
@@ -29,9 +21,6 @@
  *
  *  defend the east wall of the castle
  *  efgfoe uif fbtu xbmm pg uif dbtumf
- *
- *  It is easy to see how each character in the plaintext is shifted up the alphabet.
- *  Decryption is just as easy, by using an offset of -1.
  */
 
 // Source: http://practicalcryptography.com
