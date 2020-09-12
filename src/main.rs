@@ -2,30 +2,24 @@
 extern crate clap;
 
 use std::{
-    io::{
-        self, Read,
-    },
+    io::{self, Read},
+    error,
 };
 
 mod ciphers;
 mod utils;
 
-fn parse_buffer(matches: &clap::ArgMatches) -> Option<String> {
+fn parse_buffer(matches: &clap::ArgMatches) -> Result<String, Box<dyn error::Error>> {
     let mut buffer = String::new();
     match matches.value_of("input") {
         Some(input) => buffer = input.to_string(),
-        None => {
-            match io::stdin().read_to_string(&mut buffer) {
-                Ok(_) => {}
-                Err(_) => return None
-            }
-        }
+        None => { let _ = io::stdin().read_to_string(&mut buffer)?; }
     };
 
-    Some(buffer)
+    Ok(buffer)
 }
 
-fn main() {
+fn main() -> Result<(), Box<dyn error::Error>> {
     let matches = clap_app!(crypt =>
         (version: "0.1.0")
         (author: "dikuchan <dikuchan@yahoo.com>")
@@ -70,134 +64,60 @@ fn main() {
         )
     ).get_matches();
 
-    match matches.subcommand() {
+    let result = match matches.subcommand() {
         ("affine", affine_matches) => {
-            let matches = if let Some(matches) = affine_matches { matches } else { return; };
-            let slope = matches.value_of("slope").unwrap();
-            let slope = match slope.parse::<i64>() {
-                Ok(num) => num,
-                Err(err) => {
-                    eprint!("Erroneous slope value: {}", err);
-                    return;
-                }
-            };
-            let intercept = matches.value_of("intercept").unwrap();
-            let intercept = match intercept.parse::<i64>() {
-                Ok(num) => num,
-                Err(err) => {
-                    eprint!("Erroneous intercept value: {}", err);
-                    return;
-                }
-            };
+            let matches = if let Some(matches) = affine_matches { matches } else { return Ok(()); };
+            let slope = matches.value_of("slope").unwrap().parse::<i64>()?;
+            let intercept = matches.value_of("intercept").unwrap().parse::<i64>()?;
             let (encrypt, decrypt) = (
                 matches.is_present("encrypt"),
                 matches.is_present("decrypt")
             );
             match (encrypt, decrypt) {
-                (true, _) => {
-                    match parse_buffer(matches) {
-                        Some(buffer) => {
-                            match ciphers::affine::encrypt(&buffer, slope, intercept) {
-                                Ok(string) => print!("{}", string),
-                                Err(err) => eprint!("{}", err)
-                            }
-                        },
-                        None => eprint!("Nothing to encrypt")
-                    }
-                }
-                (_, true) => {
-                    match parse_buffer(matches) {
-                        Some(buffer) => {
-                            match ciphers::affine::decrypt(&buffer, slope, intercept) {
-                                Ok(string) => print!("{}", string),
-                                Err(err) => eprint!("{}", err)
-                            }
-                        },
-                        None => eprint!("Nothing to decrypt")
-                    }
-                }
+                (true, _) => ciphers::affine::encrypt(&parse_buffer(matches)?, slope, intercept)?,
+                (_, true) => ciphers::affine::decrypt(&parse_buffer(matches)?, slope, intercept)?,
                 _ => unreachable!()
             }
         }
         ("atbash", atbash_matches) => {
-            let matches = if let Some(matches) = atbash_matches { matches } else { return; };
-            match parse_buffer(matches) {
-                Some(buffer) => print!("{}", ciphers::atbash::encrypt(&buffer)),
-                None => eprint!("Nothing to encrypt")
-            };
+            let matches = if let Some(matches) = atbash_matches { matches } else { return Ok(()); };
+            let buffer = parse_buffer(matches)?;
+            ciphers::atbash::encrypt(&buffer)
         }
         ("bacon", bacon_matches) => {
-            let matches = if let Some(matches) = bacon_matches { matches } else { return; };
+            let matches = if let Some(matches) = bacon_matches { matches } else { return Ok(()); };
             let (encrypt, decrypt) = (
                 matches.is_present("encrypt"),
                 matches.is_present("decrypt")
             );
             match (encrypt, decrypt) {
-                (true, _) => {
-                    match parse_buffer(matches) {
-                        Some(buffer) => match ciphers::bacon::encrypt(&buffer) {
-                            Ok(result) => print!("{}", result),
-                            Err(err) => eprint!("{}", err)
-                        },
-                        None => eprint!("Nothing to encrypt")
-                    }
-                }
-                (_, true) => {
-                    match parse_buffer(matches) {
-                        Some(buffer) => match ciphers::bacon::decrypt(&buffer) {
-                            Ok(result) => print!("{}", result),
-                            Err(err) => eprintln!("{}", err)
-                        },
-                        None => eprint!("Nothing to decrypt")
-                    }
-                }
+                (true, _) => ciphers::bacon::encrypt(&parse_buffer(matches)?)?,
+                (_, true) => ciphers::bacon::decrypt(&parse_buffer(matches)?)?,
                 _ => unreachable!()
             }
         }
         ("caesar", caesar_matches) => {
-            let matches = if let Some(matches) = caesar_matches { matches } else { return; };
-            let shift = matches.value_of("shift").unwrap();
-            let shift = match shift.parse::<u8>() {
-                Ok(num) => num,
-                Err(err) => {
-                    eprintln!("Erroneous shift: {}", err);
-                    return;
-                }
-            };
+            let matches = if let Some(matches) = caesar_matches { matches } else { return Ok(()); };
+            let shift = matches.value_of("shift").unwrap().parse::<u8>()?;
             let (encrypt, decrypt) = (
                 matches.is_present("encrypt"),
                 matches.is_present("decrypt")
             );
             match (encrypt, decrypt) {
-                (true, _) => {
-                    match parse_buffer(matches) {
-                        Some(buffer) => match ciphers::caesar::encrypt(&buffer, shift) {
-                            Ok(result) => print!("{}", result),
-                            Err(err) => eprintln!("{}", err)
-                        },
-                        None => eprint!("Nothing to encrypt")
-                    }
-                }
-                (_, true) => {
-                    match parse_buffer(matches) {
-                        Some(buffer) => match ciphers::caesar::decrypt(&buffer, shift) {
-                            Ok(result) => print!("{}", result),
-                            Err(err) => eprintln!("{}", err)
-                        },
-                        None => eprint!("Nothing to decrypt")
-                    }
-                }
+                (true, _) => ciphers::caesar::encrypt(&parse_buffer(matches)?, shift)?,
+                (_, true) => ciphers::caesar::decrypt(&parse_buffer(matches)?, shift)?,
                 _ => unreachable!()
             }
         }
         ("rot13", rot13_matches) => {
-            let matches = if let Some(matches) = rot13_matches { matches } else { return; };
-            match parse_buffer(matches) {
-                Some(buffer) => print!("{}", ciphers::rot13::encrypt(&buffer)),
-                None => eprint!("Nothing to encode")
-            };
+            let matches = if let Some(matches) = rot13_matches { matches } else { return Ok(()); };
+            ciphers::rot13::encrypt(&parse_buffer(matches)?)
         }
-        ("", None) => return,
-        _ => unreachable!()
-    }
+        ("", None) => return Ok(()),
+        _ => unreachable!(),
+    };
+
+    print!("{}", result);
+
+    Ok(())
 }
