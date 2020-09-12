@@ -1,29 +1,15 @@
 # Crypt
 
-Command line tool for encryption and decryption.
+Cryptographic command line tool.
 
-## Description
-
-#### Learn
-
-Crypt provides the interface that is convenient when learning cryptography.
-
-With that idea in mind, most common ciphers and attacks are implemented and their execution are demonstrated step by step.
-
-#### Use
-
-Well-known and prominent ciphers are implemented and listed down below.
+The most simple prominent ciphers are implemented and listed down below.
 
 If you think something is missed, I would gladly inspect an issue or a pull request.
-
-#### Customize
-
-Additional languages could be added via .json file.
 
 ## Examples
 
 ```bash
-$ crypt rot13 -encrypt "hello world"
+$ crypt rot13 --encrypt "hello world"
 $ uryyb jbeyq
 ```
 
@@ -45,13 +31,8 @@ All commands are listed in help.
 * [x] Affine
 * [x] Baconian
 * [X] Caesar
-    * [ ] Brute-force
-    * [ ] Hill-climbing
 * [x] Rot13
 * [ ] RSA
-    * [ ] Common modulus
-    * [ ] Small decryption exponent
-    * [ ] Partial disclosure
 
 ## Customization
 
