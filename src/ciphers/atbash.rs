@@ -1,51 +1,44 @@
-/*
- *  [Algorithm]
- *
- *  The Atbash cipher is essentially a substitution cipher with a fixed key.
- *  If you know the cipher is Atbash, then no additional information is needed to decrypt the message.
- *  The substitution key is
- *
- *  ABCDEFGHIJKLMNOPQRSTUVWXYZ
- *  ZYXWVUTSRQPONMLKJIHGFEDCBA
- *
- *  To encipher a message, replace the letter in the top row with the letter in the bottom row.
- *
- *  [Example]
- *
- *  The message is 'ATTACK AT DAWN'.
- *  The first letter we wish to encipher is 'A', which is above 'Z', so the first ciphertext letter is 'Z'.
- *  The next letter is 'T', which is above 'G', so that comes next.
- *  The whole message is enciphered:
- *
- *  ATTACK AT DAWN
- *  ZGGZXP ZG WZDM
- */
+use crate::{
+    error::*,
+    ciphers::cipher::*,
+};
 
-// Source: http://practicalcryptography.com
+/// Atbash is a simple monoalphabetic substitution cipher.
+///
+/// # Algorithm
+/// Each `i`-th letter is replaced with the `i`-th letter from the reversed alphabet.
+/// And vice versa in the decoding procedure.
+pub struct Atbash;
 
-pub fn encrypt(string: &str) -> String {
-    string.chars()
-        .map(|c|
-            match c {
-                'a'..='z' => (0x7A - c as u8 + 0x61) as char, // 'z' - c + 'a'
-                'A'..='Z' => (0x5A - c as u8 + 0x41) as char, // 'Z' - c + 'A'
-                _ => c
-            })
-        .collect()
+impl Atbash {
+    pub fn new() -> Self { Atbash }
+}
+
+impl Cipher for Atbash {
+    fn encrypt(&self, text: &str) -> Result<String> {
+        Ok(text.chars()
+            .map(|c|
+                match c {
+                    'a'..='z' => (0x7A - c as u8 + 0x61) as char, // 'z' - c + 'a'
+                    'A'..='Z' => (0x5A - c as u8 + 0x41) as char, // 'Z' - c + 'A'
+                    _ => c
+                })
+            .collect())
+    }
 }
 
 #[test]
-fn test_atbash_encryption() {
-    assert_eq!(encrypt("Attack at dawn"), String::from("Zggzxp zg wzdm"));
-    assert_eq!(encrypt("true iS 42"), String::from("gifv rH 42"));
-    assert_eq!(encrypt("こんばんは"), String::from("こんばんは"));
-    assert_eq!(encrypt("Привет, world!"), String::from("Привет, dliow!"))
+fn atbash_encryption() {
+    assert_eq!(Atbash::new().encrypt("Attack at dawn").unwrap(), String::from("Zggzxp zg wzdm"));
+    assert_eq!(Atbash::new().encrypt("true iS 42").unwrap(), String::from("gifv rH 42"));
+    assert_eq!(Atbash::new().encrypt("こんばんは").unwrap(), String::from("こんばんは"));
+    assert_eq!(Atbash::new().encrypt("Привет, world!").unwrap(), String::from("Привет, dliow!"))
 }
 
 #[test]
-fn test_atbash_decryption() {
-    assert_eq!(encrypt("Zggzxp zg wzdm"), String::from("Attack at dawn"));
-    assert_eq!(encrypt("gifv rH 42"), String::from("true iS 42"));
-    assert_eq!(encrypt("こんばんは"), String::from("こんばんは"));
-    assert_eq!(encrypt("Привет, dliow!"), String::from("Привет, world!"))
+fn atbash_decryption() {
+    assert_eq!(Atbash::new().decrypt("Zggzxp zg wzdm").unwrap(), String::from("Attack at dawn"));
+    assert_eq!(Atbash::new().decrypt("gifv rH 42").unwrap(), String::from("true iS 42"));
+    assert_eq!(Atbash::new().decrypt("こんばんは").unwrap(), String::from("こんばんは"));
+    assert_eq!(Atbash::new().decrypt("Привет, dliow!").unwrap(), String::from("Привет, world!"))
 }

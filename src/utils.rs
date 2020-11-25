@@ -1,31 +1,45 @@
-use std::{
-    error,
-    fmt,
-};
+use crate::error::*;
 
-#[derive(Debug, Clone)]
-pub enum CipherError {
-    NotAlpha,
-    NotPrime,
-    NullShift,
+/// Check if string contains only alphabetic letters, numbers and some special ASCII characters.
+pub fn is_alpha(text: &str) -> bool {
+    text.chars().all(|c| c.is_ascii_alphabetic() || c.is_ascii_whitespace())
 }
 
-impl error::Error for CipherError {
-    fn source(&self) -> Option<&(dyn error::Error + 'static)> {
-        None
-    }
+/// Return the greatest common divisor of two integers.
+pub fn gcd(a: i64, b: i64) -> i64 {
+    if b == 0 { a } else { gcd(b, a % b) }
 }
 
-impl fmt::Display for CipherError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match self {
-            Self::NullShift => write!(f, "Shift is out of range"),
-            Self::NotPrime => write!(f, "Relatively prime number should be used"),
-            Self::NotAlpha => write!(f, "String contains not prime chars")
+/// Extended GCD algorithm.
+///
+/// # Arguments
+/// * `a`, `b` - arbitrary numbers.
+///
+/// # Return
+/// * (`x`, `y`, `d`) - a triple, where
+///     * `x` and `y` - integers satisfying the equation `ax` + `by` = gcd(`a`, `b`).
+///     * `d` - gcd(`a`, `b`).
+fn egcd(a: i64, b: i64) -> (i64, i64, i64) {
+    match a {
+        0 => (b, 0, 1),
+        _ => {
+            let (d, x, y) = egcd(b % a, a);
+            (d, y - (b / a) * x, x)
         }
     }
 }
 
-pub fn is_alpha(string: &str) -> bool {
-    string.chars().all(|c| c.is_ascii_alphabetic() || c.is_ascii_whitespace())
+/// Find modular multiplicative inverse.
+///
+/// # Arguments
+/// `a`, `m` - integers such that `ax`= 1 (mod `m`).
+///
+/// # Return
+/// `x` - modular inverse.
+pub fn inverse(a: i64, m: i64) -> Result<i64> {
+    let (d, x, _) = egcd(a, m);
+    match d {
+        1 => Ok((x % m + m) % m),
+        _ => Err(CipherError::InvalidInverse(a, m)),
+    }
 }

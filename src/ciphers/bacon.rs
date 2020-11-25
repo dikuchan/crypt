@@ -1,38 +1,37 @@
-/*
- *  [Algorithm]
- *
- *  Each letter is assigned to a string of five binary digits.
- *  These could be the letters 'A' and 'B', the numbers 0 and 1 or whatever else you may desire.
- *
- *  [Example]
- *
- *  To encipher a message, e.g. 'STRIKE NOW', we replace each letter:
- *
- *  S     T     R     I     K     E     N     O     W
- *  baaab baaba baaaa abaaa abaab aabaa abbaa abbab babaa
- *  Hold OFf uNtIl you hEar frOm mE agAin. wE May cOMpROmIse.
- *
- *  Capital letters are used where the cipher has a 'b' and lowercase where there is an 'a'.
- *
- *  [Requirements]
- *
- *  All letter should be alpha characters.
- */
+use crate::{
+    error::*,
+    ciphers::cipher::*,
+    utils::*,
+};
 
-// Source: http://practicalcryptography.com
-
-use crate::utils::*;
 use std::str;
 
-pub fn encrypt(string: &str) -> Result<String, CipherError> {
-    if !is_alpha(string) {
-        return Err(CipherError::NotAlpha);
+/// Bacon's cipher is a method of message encoding,
+/// where message is concealed in the presentation of text, rather than its content.
+///
+/// # Algorithm
+/// Each letter is encoded with a string of five binary digit.
+/// The string of encoded characters, called `S`, is zipped with the text.
+/// When `S` has `1` in it, a corresponding letter in the zipped text is turned to upper case.
+///
+/// # Requirements
+/// All letters should be alpha characters.
+pub struct Bacon<'a> {
+    key: &'a str,
+}
+
+impl<'a> Bacon<'a> {
+    pub fn new(key: &'a str) -> Self {
+        Self { key }
     }
-    let result = string.chars()
-        .map(|c|
-            if c.is_whitespace() {
-                c.to_string()
-            } else {
+}
+
+impl<'a> Cipher for Bacon<'a> {
+    fn encrypt(&self, text: &str) -> Result<String> {
+        if !is_alpha(text) { return Err(CipherError::NotAlpha); }
+
+        let encrypted = self.key.chars()
+            .map(|c|
                 format!("{:05b}", match c {
                     'a'..='i' => (c as u8) - 0x61,
                     'j'..='u' => (c as u8) - 0x61 - 0x01,
@@ -41,77 +40,36 @@ pub fn encrypt(string: &str) -> Result<String, CipherError> {
                     'J'..='U' => (c as u8) - 0x41 - 0x01,
                     'V'..='Z' => (c as u8) - 0x41 - 0x02,
                     _ => unreachable!()
-                })
+                }))
+            .collect::<String>();
+
+        let result = encrypted.chars()
+            .cycle().zip(text.chars())
+            .map(|(i, j)| match i {
+                '1' => j.to_ascii_uppercase(),
+                _ => j
             })
-        .collect();
+            .collect::<String>();
 
-    Ok(result)
-}
+        Ok(result)
+    }
 
-fn transform(slice: &[u8]) -> Option<char> {
-    let string = if let Ok(string) = str::from_utf8(&slice) {
-        string
-    } else {
-        return None;
-    };
-
-    let result = if let Ok(result) = u8::from_str_radix(string, 2) {
-        match result {
-            0x00..=0x08 => result + 0x61,
-            0x09..=0x13 => result + 0x61 + 0x01,
-            0x14..=0x17 => result + 0x61 + 0x02,
-            _ => unreachable!()
-        }
-    } else {
-        return None;
-    };
-
-    Some(result as char)
-}
-
-pub fn decrypt(string: &str) -> Result<String, CipherError> {
-    let chunks = string.split_whitespace().collect::<Vec<&str>>();
-    let result = chunks.iter()
-        .map(|&chunk|
-            chunk.as_bytes()
-                .chunks(5)
-                .map(|c| transform(c).unwrap())
-                .collect::<String>())
-        .collect::<Vec<String>>()
-        .join(" ");
-
-    Ok(result)
-}
-
-pub fn implant(cipher: &str, text: &str) -> Result<String, CipherError> {
-    let text = text.to_lowercase();
-    let cipher = cipher.chars()
-        .filter(|c| !c.is_whitespace())
-        .collect::<String>();
-    let result = text.chars()
-        .zip(cipher.chars())
-        .map(|(a, b)|
-            match b {
-                '0' => a,
-                '1' => ((a as u8) + 0x20) as char,
-                _ => unreachable!()
-            })
-
-        .collect();
-
-    Ok(result)
+    fn decrypt(&self, text: &str) -> Result<String> {
+        Ok(text.chars()
+            .filter(|c| !c.is_whitespace())
+            .map(|c| if c.is_uppercase() { '1' } else { '0' })
+            .collect::<Vec<char>>()
+            .chunks(5)
+            .map(|chunk| chunk.iter().collect::<String>())
+            .map(|string| u8::from_str_radix(&string, 2).unwrap() as char)
+            .collect())
+    }
 }
 
 #[test]
-fn test_baconian_encryption() {
-    assert_eq!(encrypt("Attack at dawn").unwrap(), String::from("000001001010010000000001001001 0000010010 00011000001010001100"));
-    assert_eq!(encrypt("true iS None").unwrap(), String::from("10010100001001100100 0100010001 01100011010110000100"));
-    assert!(encrypt("こんばんは, mates").is_err());
-    assert!(encrypt("Привет, world!").is_err())
-}
-
-#[test]
-fn test_baconian_decryption() {
-    assert_eq!(decrypt("000001001010010000000001001001 0000010010 00011000001010001100").unwrap(), String::from("attack at dawn"));
-    assert_eq!(decrypt("10010100001001100100 0100010001 01100011010110000100").unwrap(), String::from("true is none"));
+fn bacon_encryption() {
+    assert_eq!(Bacon::new("hi").encrypt("Attack at dawn").unwrap(), String::from("AtTACk at daWN"));
+    assert_eq!(Bacon::new("hi").encrypt("true is none").unwrap(), String::from("trUE iS none"));
+    assert!(Bacon::new("hi").encrypt("こんばんは, mates").is_err());
+    assert!(Bacon::new("hi").encrypt("Привет, world!").is_err());
 }

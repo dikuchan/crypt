@@ -1,29 +1,49 @@
 #[macro_use]
 extern crate clap;
 
-use std::{
-    io::{self, Read},
-    error,
+use crate::{
+    error::CipherError as Error,
+    ciphers::cipher::*,
+    ciphers::{
+        affine::Affine,
+        atbash::Atbash,
+        bacon::Bacon,
+        caesar::Caesar,
+        rot13::Rot13,
+    },
 };
 
+use std::io::{self, Read};
+
 mod ciphers;
+mod error;
 mod utils;
 
-fn parse_buffer(matches: &clap::ArgMatches) -> Result<String, Box<dyn error::Error>> {
+macro_rules! assign {
+    ($cipher:ident, $matches:ident) => {
+    match ($matches.is_present("encrypt"), $matches.is_present("decrypt")) {
+        (true, _) => $cipher.encrypt(&parse_buffer($matches)?)?,
+        (_, true) => $cipher.decrypt(&parse_buffer($matches)?)?,
+        _ => unreachable!()
+    }
+    };
+}
+
+fn parse_buffer(matches: &clap::ArgMatches) -> Result<String, io::Error> {
     let mut buffer = String::new();
     match matches.value_of("input") {
         Some(input) => buffer = input.to_string(),
-        None => { let _ = io::stdin().read_to_string(&mut buffer)?; }
+        None => { io::stdin().read_to_string(&mut buffer)?; }
     };
 
     Ok(buffer)
 }
 
-fn main() -> Result<(), Box<dyn error::Error>> {
+fn main() -> Result<(), Error> {
     let matches = clap_app!(crypt =>
         (version: "0.1.0")
         (author: "dikuchan <dikuchan@yahoo.com>")
-        (about: "Encrypt piped strings")
+        (about: "Simple command line encryption tool")
         (@subcommand atbash =>
             (@group action +required =>
                 (@arg encrypt: -e --encrypt)
@@ -45,6 +65,7 @@ fn main() -> Result<(), Box<dyn error::Error>> {
                 (@arg encrypt: -e --encrypt)
                 (@arg decrypt: -d --decrypt)
             )
+            (@arg key: +required +takes_value "Word to encode in text")
             (@arg input: +takes_value "String to decode")
         )
         (@subcommand caesar =>
@@ -66,52 +87,33 @@ fn main() -> Result<(), Box<dyn error::Error>> {
 
     let result = match matches.subcommand() {
         ("affine", affine_matches) => {
-            let matches = if let Some(matches) = affine_matches { matches } else { return Ok(()); };
+            let matches = affine_matches.unwrap();
             let slope = matches.value_of("slope").unwrap().parse::<i64>()?;
             let intercept = matches.value_of("intercept").unwrap().parse::<i64>()?;
-            let (encrypt, decrypt) = (
-                matches.is_present("encrypt"),
-                matches.is_present("decrypt")
-            );
-            match (encrypt, decrypt) {
-                (true, _) => ciphers::affine::encrypt(&parse_buffer(matches)?, slope, intercept)?,
-                (_, true) => ciphers::affine::decrypt(&parse_buffer(matches)?, slope, intercept)?,
-                _ => unreachable!()
-            }
+            let cipher = Affine::new(slope, intercept)?;
+            assign!(cipher, matches)
         }
         ("atbash", atbash_matches) => {
-            let matches = if let Some(matches) = atbash_matches { matches } else { return Ok(()); };
-            let buffer = parse_buffer(matches)?;
-            ciphers::atbash::encrypt(&buffer)
+            let matches = atbash_matches.unwrap();
+            let cipher = Atbash::new();
+            assign!(cipher, matches)
         }
         ("bacon", bacon_matches) => {
-            let matches = if let Some(matches) = bacon_matches { matches } else { return Ok(()); };
-            let (encrypt, decrypt) = (
-                matches.is_present("encrypt"),
-                matches.is_present("decrypt")
-            );
-            match (encrypt, decrypt) {
-                (true, _) => ciphers::bacon::encrypt(&parse_buffer(matches)?)?,
-                (_, true) => ciphers::bacon::decrypt(&parse_buffer(matches)?)?,
-                _ => unreachable!()
-            }
+            let matches = bacon_matches.unwrap();
+            let key = matches.value_of("key").unwrap();
+            let cipher = Bacon::new(key);
+            assign!(cipher, matches)
         }
         ("caesar", caesar_matches) => {
-            let matches = if let Some(matches) = caesar_matches { matches } else { return Ok(()); };
+            let matches = caesar_matches.unwrap();
             let shift = matches.value_of("shift").unwrap().parse::<u8>()?;
-            let (encrypt, decrypt) = (
-                matches.is_present("encrypt"),
-                matches.is_present("decrypt")
-            );
-            match (encrypt, decrypt) {
-                (true, _) => ciphers::caesar::encrypt(&parse_buffer(matches)?, shift)?,
-                (_, true) => ciphers::caesar::decrypt(&parse_buffer(matches)?, shift)?,
-                _ => unreachable!()
-            }
+            let cipher = Caesar::new(shift)?;
+            assign!(cipher, matches)
         }
         ("rot13", rot13_matches) => {
-            let matches = if let Some(matches) = rot13_matches { matches } else { return Ok(()); };
-            ciphers::rot13::encrypt(&parse_buffer(matches)?)
+            let matches = rot13_matches.unwrap();
+            let cipher = Rot13::new();
+            assign!(cipher, matches)
         }
         ("", None) => return Ok(()),
         _ => unreachable!(),

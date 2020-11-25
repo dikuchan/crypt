@@ -1,3 +1,4 @@
+pub mod cipher;
 pub mod affine;
 pub mod atbash;
 pub mod bacon;
